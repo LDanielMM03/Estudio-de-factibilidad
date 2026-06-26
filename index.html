@@ -1,12 +1,1475 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Estudio de factibilidad</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Estudio de Factibilidad – Ingeniería de Software</title>
+
+<!-- Fonts & Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<!-- Se agregó FontAwesome para reemplazar los emojis por íconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0A0E1A;
+  --surface:   #111827;
+  --card:      #1A2235;
+  --border:    #1E3050;
+  --accent:    #4F8EF7;
+  --accent2:   #7C3AED;
+  --gold:      #F59E0B;
+  --text:      #E8EDF5;
+  --muted:     #8BA3C0;
+  --green:     #10B981;
+  --red:       #EF4444;
+  --teal:      #06B6D4;
+  --slide-w:   1920px;
+  --slide-h:   1080px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: #000;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  user-select: none;
+}
+
+/* ── VIEWPORT SCALE ── */
+#viewport {
+  width: var(--slide-w);
+  height: var(--slide-h);
+  position: absolute;
+  top: 0; left: 0;
+  transform-origin: top left;
+  overflow: hidden;
+}
+
+/* ── SLIDES ── */
+.slide {
+  position: absolute;
+  inset: 0;
+  width: var(--slide-w);
+  height: var(--slide-h);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+/* ── ANIMATION CLASSES ── */
+.slide.enter-left  { animation: enterLeft  .55s cubic-bezier(.22,1,.36,1) forwards; }
+.slide.enter-right { animation: enterRight .55s cubic-bezier(.22,1,.36,1) forwards; }
+.slide.exit-left   { animation: exitLeft   .45s cubic-bezier(.55,0,.8,.45) forwards; }
+.slide.exit-right  { animation: exitRight  .45s cubic-bezier(.55,0,.8,.45) forwards; }
+
+@keyframes enterLeft  { from { transform: translateX(-120px); opacity:0 } to { transform:translateX(0); opacity:1 } }
+@keyframes enterRight { from { transform: translateX( 120px); opacity:0 } to { transform:translateX(0); opacity:1 } }
+@keyframes exitLeft   { from { transform: translateX(0); opacity:1 } to { transform: translateX(-80px); opacity:0 } }
+@keyframes exitRight  { from { transform: translateX(0); opacity:1 } to { transform: translateX( 80px); opacity:0 } }
+
+/* ── GLOBAL ELEMENTS ── */
+.slide-header {
+  display: flex; align-items: center; gap: 20px;
+  padding: 30px 70px 0;
+}
+.chip {
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px; font-weight: 700; /* Aumentado */
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 8px 20px; border-radius: 999px; /* Aumentado */
+  flex-shrink: 0;
+}
+.chip.gold  { background: var(--gold); color: #111; }
+.chip.teal  { background: var(--teal); color: #111; }
+.chip.green { background: var(--green); }
+.chip.purple { background: var(--accent2); }
+.chip.red { background: var(--red); }
+
+.eyebrow {
+  font-size: 16px; font-weight: 600; letter-spacing: .2em; /* Aumentado */
+  text-transform: uppercase; color: var(--muted);
+}
+.rule { flex: 1; height: 1px; background: var(--border); }
+
+/* ── PROGRESS BAR ── */
+#progress-bar {
+  position: fixed;
+  bottom: 0; left: 0;
+  height: 6px; /* Aumentado */
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width .4s ease;
+  z-index: 999;
+}
+
+/* ── NAV HINTS ── */
+#nav-hint {
+  position: fixed; bottom: 20px; right: 40px;
+  font-size: 16px; color: var(--muted); /* Aumentado */
+  letter-spacing: .1em; text-transform: uppercase;
+  z-index: 999;
+  font-weight: 500;
+}
+#slide-counter {
+  position: fixed; bottom: 20px; left: 40px;
+  font-size: 16px; color: var(--muted); /* Aumentado */
+  letter-spacing: .1em;
+  z-index: 999;
+  font-weight: 600;
+}
+
+/* ── DECORATIVE GRID ── */
+.bg-grid {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 80px 80px;
+  opacity: .15;
+}
+
+/* ── GLOW BLOBS ── */
+.blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(120px); pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 1 – PORTADA
+────────────────────────────────────────────── */
+#s1 {
+  justify-content: center; align-items: center; text-align: center;
+  position: relative;
+}
+#s1 .blob1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(79,142,247,.25), transparent 70%);
+  top: -200px; left: -200px;
+}
+#s1 .blob2 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(124,58,237,.2), transparent 70%);
+  bottom: -150px; right: -150px;
+}
+#s1 .content { position: relative; z-index: 1; }
+#s1 .materia {
+  font-size: 22px; font-weight: 600; letter-spacing: .25em; /* Aumentado */
+  text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+}
+#s1 h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 120px; font-weight: 900; line-height: 1.1; /* Aumentado */
+  background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 24px;
+}
+#s1 .subtitle {
+  font-size: 34px; color: var(--muted); font-weight: 300; /* Aumentado */
+  margin-bottom: 60px;
+}
+#s1 .meta {
+  display: flex; gap: 80px; justify-content: center; /* Aumentado */
+  font-size: 20px; color: var(--muted); /* Aumentado */
+}
+#s1 .meta span { display: flex; flex-direction: column; gap: 6px; }
+#s1 .meta strong { color: var(--text); font-weight: 600; font-size: 22px; } /* Aumentado */
+
+#s1 .divider-line {
+  width: 140px; height: 4px; margin: 0 auto 56px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 2 – AGENDA
+────────────────────────────────────────────── */
+#s2 .body { flex: 1; display: flex; gap: 50px; padding: 50px 70px 60px; }
+#s2 .agenda-list {
+  flex: 1; display: flex; flex-direction: column; gap: 20px;
+}
+#s2 .agenda-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px 36px;
+  display: flex; align-items: center; gap: 28px;
+  transition: border-color .3s;
+  position: relative; overflow: hidden;
+}
+#s2 .agenda-item::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: var(--accent);
+  border-radius: 4px 0 0 4px;
+}
+#s2 .agenda-item:nth-child(2)::before { background: var(--gold); }
+#s2 .agenda-item:nth-child(3)::before { background: var(--green); }
+#s2 .agenda-item:nth-child(4)::before { background: var(--teal); }
+#s2 .agenda-item:nth-child(5)::before { background: var(--red); }
+#s2 .agenda-item:nth-child(6)::before { background: var(--accent2); }
+
+#s2 .agenda-num {
+  font-size: 48px; font-weight: 800; color: var(--border); /* Aumentado */
+  min-width: 70px; text-align: right; line-height: 1;
+}
+#s2 .agenda-text h3 { font-size: 26px; font-weight: 700; margin-bottom: 6px; } /* Aumentado */
+#s2 .agenda-text p  { font-size: 20px; color: var(--muted); font-weight: 400; } /* Aumentado */
+
+#s2 .aside {
+  width: 420px; display: flex; flex-direction: column; /* Aumentado */
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 40px 36px;
+  justify-content: center;
+}
+#s2 .aside h3 { font-size: 24px; font-weight: 700; margin-bottom: 20px; color: var(--accent); } /* Aumentado */
+#s2 .aside p  { font-size: 20px; color: var(--muted); line-height: 1.7; } /* Aumentado */
+
+/* ─────────────────────────────────────────────
+   SLIDE 3 – DEFINICIÓN
+────────────────────────────────────────────── */
+#s3 .body { flex: 1; display: flex; gap: 40px; padding: 40px 70px 60px; }
+#s3 .left  { flex: 1.3; display: flex; flex-direction: column; gap: 28px; }
+#s3 .right { flex: 1;   display: flex; flex-direction: column; gap: 24px; }
+
+#s3 .quote-box {
+  background: linear-gradient(135deg, rgba(79,142,247,.08), rgba(124,58,237,.08));
+  border: 1px solid rgba(79,142,247,.3);
+  border-left: 5px solid var(--accent);
+  border-radius: 16px; padding: 36px 40px;
+}
+#s3 .quote-text { font-size: 28px; line-height: 1.65; color: var(--text); margin-bottom: 20px; } /* Aumentado */
+#s3 .quote-author { font-size: 18px; color: var(--muted); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; } /* Aumentado */
+
+#s3 .quote-box2 {
+  background: linear-gradient(135deg, rgba(245,158,11,.06), rgba(245,158,11,.02));
+  border: 1px solid rgba(245,158,11,.25);
+  border-left: 5px solid var(--gold);
+  border-radius: 16px; padding: 32px 36px;
+}
+#s3 .quote-box2 .quote-text { font-size: 24px; } /* Aumentado */
+
+.def-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 26px 30px;
+}
+.def-card h4 { font-size: 20px; font-weight: 700; text-transform: uppercase; /* Aumentado */
+  letter-spacing: .12em; color: var(--accent); margin-bottom: 12px; }
+.def-card p  { font-size: 22px; color: var(--muted); line-height: 1.6; } /* Aumentado */
+.def-card p strong { color: var(--text); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 4 – OBJETIVOS
+────────────────────────────────────────────── */
+#s4 .body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 36px; padding: 44px 70px 60px; }
+.obj-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 40px 44px;
+  display: flex; flex-direction: column; gap: 16px;
+  position: relative; overflow: hidden;
+}
+.obj-card .icon {
+  font-size: 56px; margin-bottom: 10px; color: var(--accent); /* Aumentado y color aplicado */
+}
+.obj-card:nth-child(2) .icon { color: var(--gold); }
+.obj-card:nth-child(3) .icon { color: var(--green); }
+.obj-card:nth-child(4) .icon { color: var(--teal); }
+
+.obj-card h3 { font-size: 26px; font-weight: 700; } /* Aumentado */
+.obj-card p  { font-size: 20px; color: var(--muted); line-height: 1.65; } /* Aumentado */
+.obj-card::after {
+  content: ''; position: absolute;
+  top: -60px; right: -60px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79,142,247,.08), transparent 70%);
+}
+.obj-card:nth-child(2)::after { background: radial-gradient(circle, rgba(245,158,11,.08), transparent 70%); }
+.obj-card:nth-child(3)::after { background: radial-gradient(circle, rgba(16,185,129,.08), transparent 70%); }
+.obj-card:nth-child(4)::after { background: radial-gradient(circle, rgba(6,182,212,.08), transparent 70%); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 5 – TIPOS (3 columnas)
+────────────────────────────────────────────── */
+#s5 .body { flex: 1; display: flex; gap: 36px; padding: 44px 70px 60px; }
+.tipo-col {
+  flex: 1;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 44px 40px;
+  display: flex; flex-direction: column; gap: 24px;
+  position: relative; overflow: hidden;
+}
+.tipo-col .top-bar {
+  height: 6px; border-radius: 3px;
+  margin-bottom: 16px;
+}
+.tipo-col:nth-child(1) .top-bar { background: linear-gradient(90deg, var(--accent), #7BC8F5); }
+.tipo-col:nth-child(2) .top-bar { background: linear-gradient(90deg, var(--green), #86EFAC); }
+.tipo-col:nth-child(3) .top-bar { background: linear-gradient(90deg, var(--gold), #FCD34D); }
+
+.tipo-col .tipo-icon { font-size: 64px; margin-bottom: 8px; color: var(--accent); } /* Aumentado */
+.tipo-col:nth-child(2) .tipo-icon { color: var(--green); }
+.tipo-col:nth-child(3) .tipo-icon { color: var(--gold); }
+
+.tipo-col h2 { font-size: 34px; font-weight: 800; margin-bottom: 6px; } /* Aumentado */
+.tipo-col .tipo-q {
+  font-size: 20px; color: var(--accent); font-weight: 600; /* Aumentado */
+  font-style: italic; margin-bottom: 12px;
+}
+.tipo-col:nth-child(2) .tipo-q { color: var(--green); }
+.tipo-col:nth-child(3) .tipo-q { color: var(--gold); }
+
+.tipo-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.tipo-col ul li {
+  font-size: 20px; color: var(--muted); line-height: 1.55; /* Aumentado */
+  padding-left: 22px; position: relative;
+}
+.tipo-col ul li::before {
+  content: '›'; position: absolute; left: 0;
+  color: var(--accent); font-weight: 700; font-size: 22px;
+}
+.tipo-col:nth-child(2) ul li::before { color: var(--green); }
+.tipo-col:nth-child(3) ul li::before { color: var(--gold); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 6 – FACTIBILIDAD TÉCNICA (detalle)
+────────────────────────────────────────────── */
+#s6 .body { flex: 1; display: flex; gap: 40px; padding: 40px 70px 60px; }
+#s6 .main { flex: 1.5; display: flex; flex-direction: column; gap: 26px; }
+#s6 .sidebar { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+
+.fact-row {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 26px 32px;
+  display: flex; align-items: flex-start; gap: 22px;
+}
+.fact-row .icon-wrap {
+  width: 64px; height: 64px; border-radius: 12px; /* Aumentado */
+  background: rgba(79,142,247,.12); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; flex-shrink: 0; /* Aumentado */
+}
+.fact-row h4 { font-size: 22px; font-weight: 700; margin-bottom: 8px; } /* Aumentado */
+.fact-row p  { font-size: 20px; color: var(--muted); line-height: 1.6; } /* Aumentado */
+
+.check-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 32px;
+}
+.check-box h4 { font-size: 20px; font-weight: 700; margin-bottom: 18px; color: var(--accent); text-transform: uppercase; letter-spacing: .1em; } /* Aumentado */
+.check-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.check-list li { font-size: 20px; color: var(--muted); display: flex; gap: 12px; align-items: flex-start; } /* Aumentado */
+.check-list li i { color: var(--green); font-size: 18px; margin-top: 5px; flex-shrink: 0; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 7 – FACTIBILIDAD ECONÓMICA
+────────────────────────────────────────────── */
+#s7 .body { flex: 1; display: flex; gap: 40px; padding: 40px 70px 60px; }
+#s7 .left  { flex: 1; display: flex; flex-direction: column; gap: 26px; }
+#s7 .right { flex: 1; display: flex; flex-direction: column; gap: 26px; }
+
+.eco-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 32px;
+}
+.eco-card h4 { font-size: 22px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; } /* Aumentado */
+.eco-card.cost h4 { color: var(--red); }
+.eco-card.bene h4 { color: var(--green); }
+.eco-card.meth h4 { color: var(--teal); }
+.eco-card.note h4 { color: var(--gold); }
+.eco-card ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.eco-card ul li { font-size: 20px; color: var(--muted); padding-left: 20px; position: relative; line-height: 1.55; } /* Aumentado */
+.eco-card.cost ul li::before { content: '−'; position: absolute; left:0; color: var(--red); font-weight: 700; }
+.eco-card.bene ul li::before { content: '+'; position: absolute; left:0; color: var(--green); font-weight: 700; }
+.eco-card.meth ul li::before { content: '→'; position: absolute; left:0; color: var(--teal); font-weight: 700; }
+.eco-card.note ul li::before { content: '!'; position: absolute; left:0; color: var(--gold); font-weight: 700; }
+
+.cb-formula {
+  background: linear-gradient(135deg, rgba(16,185,129,.08), rgba(6,182,212,.08));
+  border: 1px solid rgba(16,185,129,.25);
+  border-radius: 14px; padding: 28px 32px;
+  text-align: center;
+}
+.cb-formula .formula {
+  font-size: 34px; font-weight: 800; /* Aumentado */
+  background: linear-gradient(90deg, var(--green), var(--teal));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 14px;
+}
+.cb-formula p { font-size: 18px; color: var(--muted); } /* Aumentado */
+
+/* ─────────────────────────────────────────────
+   SLIDE 8 – FACTIBILIDAD OPERATIVA
+────────────────────────────────────────────── */
+#s8 .body { flex: 1; display: flex; gap: 40px; padding: 40px 70px 60px; }
+#s8 .left  { flex: 1.2; display: flex; flex-direction: column; gap: 26px; }
+#s8 .right { flex: 1;   display: flex; flex-direction: column; gap: 26px; }
+
+.factor-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 26px 32px;
+  display: flex; gap: 20px; align-items: flex-start;
+}
+.factor-card .num {
+  font-size: 52px; font-weight: 900; color: var(--border); /* Aumentado */
+  line-height: 1; min-width: 64px;
+}
+.factor-card h4 { font-size: 22px; font-weight: 700; margin-bottom: 8px; } /* Aumentado */
+.factor-card p  { font-size: 20px; color: var(--muted); line-height: 1.6; } /* Aumentado */
+
+/* ─────────────────────────────────────────────
+   SLIDE 9 – PROCESO / PASOS
+────────────────────────────────────────────── */
+#s9 .body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 40px 70px 60px; }
+.steps-flow { display: flex; gap: 0; align-items: stretch; }
+.step-box {
+  flex: 1;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 0; padding: 36px 32px;
+  display: flex; flex-direction: column; gap: 16px;
+  position: relative;
+}
+.step-box:first-child { border-radius: 16px 0 0 16px; }
+.step-box:last-child  { border-radius: 0 16px 16px 0; }
+.step-box .snum {
+  font-size: 64px; font-weight: 900; /* Aumentado */
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1;
+}
+.step-box h4 { font-size: 22px; font-weight: 700; margin-bottom: 6px; } /* Aumentado */
+.step-box p  { font-size: 18px; color: var(--muted); line-height: 1.6; flex: 1; } /* Aumentado */
+.step-arrow {
+  width: 44px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: var(--accent);
+  background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.step-box .step-tag {
+  font-size: 14px; font-weight: 700; letter-spacing: .15em; /* Aumentado */
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 6px;
+}
+
+#s9 .note-row {
+  margin-top: 32px;
+  background: rgba(79,142,247,.07); border: 1px solid rgba(79,142,247,.2);
+  border-radius: 12px; padding: 22px 32px;
+  font-size: 20px; color: var(--muted); line-height: 1.6; /* Aumentado */
+}
+#s9 .note-row strong { color: var(--text); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 10 – TIPOS ADICIONALES
+────────────────────────────────────────────── */
+#s10 .body { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding: 44px 70px 60px; }
+.extra-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 40px 36px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.extra-card .eicon { font-size: 64px; color: var(--accent); } /* Aumentado */
+.extra-card:nth-child(2) .eicon { color: var(--teal); }
+.extra-card:nth-child(3) .eicon { color: var(--accent2); }
+.extra-card h3 { font-size: 30px; font-weight: 800; } /* Aumentado */
+.extra-card .etag { font-size: 16px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; } /* Aumentado */
+.extra-card p  { font-size: 20px; color: var(--muted); line-height: 1.65; } /* Aumentado */
+.extra-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.extra-card ul li { font-size: 20px; color: var(--muted); padding-left: 20px; position: relative; } /* Aumentado */
+.extra-card ul li::before { content: '·'; position: absolute; left:0; color: var(--accent2); font-weight: 900; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 11 – CRITERIOS DE SELECCIÓN
+────────────────────────────────────────────── */
+#s11 .body { flex: 1; display: flex; gap: 40px; padding: 44px 70px 60px; }
+#s11 .col  { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+
+.crit-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 26px 30px;
+  display: flex; gap: 20px; align-items: flex-start;
+}
+.crit-card .badge {
+  width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0; /* Aumentado */
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 800; /* Aumentado */
+  background: rgba(79,142,247,.15); color: var(--accent);
+}
+.crit-card h4 { font-size: 22px; font-weight: 700; margin-bottom: 6px; } /* Aumentado */
+.crit-card p  { font-size: 19px; color: var(--muted); line-height: 1.55; } /* Aumentado */
+
+/* ─────────────────────────────────────────────
+   SLIDE 12 – INFORME DE FACTIBILIDAD
+────────────────────────────────────────────── */
+#s12 .body { flex: 1; display: flex; gap: 40px; padding: 40px 70px 60px; }
+#s12 .main { flex: 1.4; display: flex; flex-direction: column; gap: 26px; }
+#s12 .side { flex: 1;   display: flex; flex-direction: column; gap: 24px; }
+
+.doc-section {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px 30px;
+}
+.doc-section h4 { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--teal); text-transform: uppercase; letter-spacing: .1em; } /* Aumentado */
+.doc-section ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.doc-section ul li { font-size: 20px; color: var(--muted); padding-left: 22px; position: relative; line-height: 1.55; } /* Aumentado */
+.doc-section ul li::before { content: '▸'; position: absolute; left: 0; color: var(--teal); font-size: 16px; top: 2px; }
+
+.outcome-box {
+  background: linear-gradient(135deg, rgba(79,142,247,.08), rgba(124,58,237,.08));
+  border: 1px solid rgba(79,142,247,.25);
+  border-radius: 14px; padding: 28px 32px;
+}
+.outcome-box h4 { font-size: 22px; font-weight: 700; margin-bottom: 16px; color: var(--accent); } /* Aumentado */
+.outcome-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.outcome-list li { font-size: 20px; font-weight: 600; color: var(--text); display: flex; gap: 14px; align-items: center; } /* Aumentado */
+.outcome-list li .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.outcome-list li:nth-child(1) .dot { background: var(--green); }
+.outcome-list li:nth-child(2) .dot { background: var(--red); }
+.outcome-list li:nth-child(3) .dot { background: var(--gold); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 13 – RESUMEN VISUAL
+────────────────────────────────────────────── */
+#s13 .body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 40px 70px 60px; }
+#s13 .center-wrap { display: flex; gap: 50px; align-items: center; }
+#s13 .diagram { flex: 1.2; }
+#s13 .takeaways { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+.diagram-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 40px;
+}
+.diagram-box .d-title { font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; color: var(--muted); margin-bottom: 28px; } /* Aumentado */
+.d-center {
+  text-align: center; margin-bottom: 24px;
+}
+.d-center .d-main {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; font-size: 24px; font-weight: 800; /* Aumentado */
+  padding: 16px 32px; border-radius: 12px;
+  margin-bottom: 20px;
+}
+.d-branches {
+  display: flex; justify-content: space-between; gap: 12px;
+}
+.d-branch {
+  flex: 1; text-align: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 10px;
+  font-size: 16px; font-weight: 600; color: var(--text); /* Aumentado */
+}
+.d-branch i { font-size: 24px; margin-bottom: 8px; display: block; }
+.d-branch.acc1 { border-color: rgba(79,142,247,.4); color: var(--accent); }
+.d-branch.acc2 { border-color: rgba(16,185,129,.4); color: var(--green); }
+.d-branch.acc3 { border-color: rgba(245,158,11,.4); color: var(--gold); }
+.d-branch.acc4 { border-color: rgba(6,182,212,.4); color: var(--teal); }
+.d-branch.acc5 { border-color: rgba(124,58,237,.4); color: var(--accent2); }
+
+.takeaway {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px 26px;
+  display: flex; gap: 18px; align-items: flex-start;
+}
+.takeaway .tk-icon { font-size: 28px; flex-shrink: 0; color: var(--accent); } /* Aumentado */
+.takeaway p { font-size: 20px; color: var(--muted); line-height: 1.6; } /* Aumentado */
+.takeaway p strong { color: var(--text); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 14 – REFERENCIAS
+────────────────────────────────────────────── */
+#s14 .body { flex: 1; display: flex; gap: 40px; padding: 40px 70px 60px; }
+#s14 .col  { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+.ref-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px 26px;
+  display: flex; gap: 18px; align-items: flex-start;
+}
+.ref-item .ref-num {
+  font-size: 18px; font-weight: 800; color: var(--accent); /* Aumentado */
+  min-width: 32px;
+}
+.ref-item p { font-size: 18px; color: var(--muted); line-height: 1.6; } /* Aumentado */
+.ref-item p em { color: var(--text); font-style: normal; font-weight: 600; }
+
+/* ─────────────────────────────────────────────
+   FULL-SCREEN BUTTON
+────────────────────────────────────────────── */
+#fs-btn {
+  position: fixed; top: 18px; right: 18px;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); font-size: 14px; font-weight: 600; /* Aumentado */
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 10px 18px; border-radius: 8px; cursor: pointer;
+  z-index: 999; font-family: 'Inter', sans-serif;
+  transition: background .2s, color .2s;
+}
+#fs-btn:hover { background: var(--border); color: var(--text); }
+
+/* ── SLIDE HEADER TITLE ── */
+.slide-title {
+  font-size: 44px; font-weight: 800; /* Aumentado */
+  line-height: 1.15;
+}
+.slide-title span { color: var(--accent); }
+
+/* ── CONTENT PADDING ── */
+.padded { padding: 44px 70px 60px; }
+
+</style>
 </head>
 <body>
-  <h1>Estudio de factibilidad</h1>
-  <p>Tu sitio en GitHub Pages ya está funcionando.</p>
+
+<div id="viewport">
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 1: PORTADA                        -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide active" id="s1">
+    <div class="bg-grid"></div>
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="content">
+      <p class="materia">Ingeniería de Software · Unidad 1: Análisis</p>
+      <h1>Estudio de<br>Factibilidad</h1>
+      <div class="divider-line"></div>
+      <p class="subtitle">Evaluación de viabilidad para proyectos de software</p>
+      <div class="meta">
+        <span><strong>Institución</strong>Instituto Tecnológico de Oaxaca</span>
+        <span><strong>Materia</strong>Ingeniería de Software</span>
+        <span><strong>Unidad</strong>1  Análisis</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 2: AGENDA                         -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s2">
+    <div class="slide-header">
+      <span class="chip">Contenido</span>
+      <div class="rule"></div>
+      <span class="eyebrow">Estructura de la presentación</span>
+    </div>
+    <div class="body">
+      <div class="agenda-list">
+        <div class="agenda-item">
+          <div class="agenda-num">01</div>
+          <div class="agenda-text">
+            <h3>Definición y Contexto</h3>
+            <p>¿Qué es un estudio de factibilidad y dónde se sitúa en el ciclo de desarrollo?</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">02</div>
+          <div class="agenda-text">
+            <h3>Objetivos del Estudio</h3>
+            <p>Propósito organizacional y valor que aporta antes de comprometer recursos</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">03</div>
+          <div class="agenda-text">
+            <h3>Tipos de Factibilidad</h3>
+            <p>Técnica, Económica, Operativa, Legal, de Calendario y Cultural</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">04</div>
+          <div class="agenda-text">
+            <h3>Proceso y Pasos</h3>
+            <p>Metodología para conducir el estudio según Kendall &amp; Kendall</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">05</div>
+          <div class="agenda-text">
+            <h3>Criterios de Selección e Informe</h3>
+            <p>Cómo priorizar proyectos y estructurar el documento final de factibilidad</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">06</div>
+          <div class="agenda-text">
+            <h3>Resumen y Referencias</h3>
+            <p>Síntesis del tema y fuentes académicas consultadas</p>
+          </div>
+        </div>
+      </div>
+      <div class="aside">
+        <h3><i class="fa-solid fa-thumbtack"></i> Unidad I</h3>
+        <p>El análisis es la primera fase del ciclo de vida del software. Dentro de ella, el <strong>estudio de factibilidad</strong> es el punto de partida: antes de analizar requerimientos, se debe confirmar que el proyecto vale la pena emprenderse.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 3: DEFINICIÓN                     -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s3">
+    <div class="slide-header">
+      <span class="chip">01</span>
+      <div class="rule"></div>
+      <span class="slide-title">Definición y <span>Contexto</span></span>
+    </div>
+    <div class="body">
+      <div class="left">
+        <div class="quote-box">
+          <p class="quote-text">
+            "El objetivo de un estudio de factibilidad es auxiliar a una organización a lograr sus objetivos y cubrir las metas con los recursos actuales en las siguientes áreas: técnica, económica y operacional."
+          </p>
+          <p class="quote-author">— Kendall &amp; Kendall, Análisis y Diseño de Sistemas, 6ª ed. (2005)</p>
+        </div>
+        <div class="quote-box2">
+          <p class="quote-text">
+            "Un estudio de factibilidad es un proceso de evaluación que se realiza antes de iniciar un proyecto para determinar si es viable y práctico, identificando riesgos, costos y beneficios para tomar una decisión informada."
+          </p>
+          <p class="quote-author">— Economipedia / Quiroa, M. (2020) — con base en literatura clásica de IS</p>
+        </div>
+        <div class="def-card">
+          <h4>Posición en el ciclo de vida</h4>
+          <p>El estudio de factibilidad ocurre en la <strong>Fase I del análisis</strong>: identificación de problemas, oportunidades y objetivos. Precede al levantamiento detallado de requerimientos.</p>
+        </div>
+      </div>
+      <div class="right">
+        <div class="def-card">
+          <h4>¿Qué determina?</h4>
+          <p>Si un proyecto es <strong>viable técnicamente</strong> (¿existe la tecnología?), <strong>rentable económicamente</strong> (¿los beneficios superan los costos?) y <strong>aceptable operativamente</strong> (¿los usuarios adoptarán el sistema?).</p>
+        </div>
+        <div class="def-card">
+          <h4>Criterio de aprobación</h4>
+          <p>Según Kendall &amp; Kendall: <strong>"Un proyecto debe ser factible en las tres formas para merecer un desarrollo posterior."</strong> Si falla en una dimensión, la inversión puede no estar justificada.</p>
+        </div>
+        <div class="def-card">
+          <h4>Temporalidad</h4>
+          <p>El estudio debe ser <strong>altamente comprimido en el tiempo</strong>: muchos proyectos serán solicitados, pero solo unos pocos deben ejecutarse. El analista no puede gastar recursos excesivos en evaluaciones preliminares.</p>
+        </div>
+        <div class="def-card">
+          <h4>Contexto organizacional</h4>
+          <p>Parte del análisis <strong>PIECES</strong> (Pressman): Performance, Information, Economics, Control, Efficiency, Services — marco para identificar problemas que justifican el nuevo sistema.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 4: OBJETIVOS                      -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s4">
+    <div class="slide-header">
+      <span class="chip">02</span>
+      <div class="rule"></div>
+      <span class="slide-title">Objetivos del <span>Estudio</span></span>
+    </div>
+    <div class="body">
+      <div class="obj-card">
+        <div class="icon"><i class="fa-solid fa-bullseye"></i></div>
+        <h3>Alinear con objetivos organizacionales</h3>
+        <p>Determinar si el proyecto sirve para mover la organización hacia sus metas estratégicas. Un proyecto puede ser técnicamente posible pero no contribuir a los objetivos del negocio.</p>
+      </div>
+      <div class="obj-card">
+        <div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <h3>Reducir errores y mejorar precisión</h3>
+        <p>Identificar si el nuevo sistema eliminará entradas de datos incorrectas, reportes duplicados o innecesarios, y procesos ineficientes del sistema actual.</p>
+      </div>
+      <div class="obj-card">
+        <div class="icon"><i class="fa-solid fa-lightbulb"></i></div>
+        <h3>Tomar una decisión informada</h3>
+        <p>Reunir datos relevantes para decidir si el proyecto procede, se descarta o se reformula antes de comprometer grandes recursos humanos, técnicos y financieros.</p>
+      </div>
+      <div class="obj-card">
+        <div class="icon"><i class="fa-solid fa-clipboard-list"></i></div>
+        <h3>Seleccionar la mejor alternativa</h3>
+        <p>Comparar distintas soluciones posibles y elegir la que mejor cubra la necesidad organizacional con los recursos disponibles, minimizando el riesgo del proyecto.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 5: TIPOS PRINCIPALES              -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s5">
+    <div class="slide-header">
+      <span class="chip teal">03</span>
+      <div class="rule"></div>
+      <span class="slide-title">Tipos Principales de <span>Factibilidad</span></span>
+    </div>
+    <div class="body">
+      <!-- TÉCNICA -->
+      <div class="tipo-col">
+        <div class="top-bar"></div>
+        <div class="tipo-icon"><i class="fa-solid fa-desktop"></i></div>
+        <h2>Técnica</h2>
+        <p class="tipo-q">"¿Tenemos la tecnología y el conocimiento?"</p>
+        <p style="font-size:20px !important;color:var(--muted);line-height:1.6;margin-bottom:8px;">
+          Evalúa si el hardware, software y experiencia técnica disponibles (o adquiribles) son suficientes para implementar el sistema propuesto.
+        </p>
+        <ul>
+          <li>¿Los recursos técnicos actuales pueden mejorarse o añadirse?</li>
+          <li>¿Existe tecnología en el mercado que satisfaga las especificaciones?</li>
+          <li>¿El equipo posee el conocimiento técnico requerido?</li>
+          <li>¿Las interfaces con sistemas existentes son viables?</li>
+          <li>Evalúa hardware, software, redes e infraestructura</li>
+        </ul>
+      </div>
+      <!-- ECONÓMICA -->
+      <div class="tipo-col">
+        <div class="top-bar"></div>
+        <div class="tipo-icon"><i class="fa-solid fa-coins"></i></div>
+        <h2>Económica</h2>
+        <p class="tipo-q">"¿Los beneficios superan los costos?"</p>
+        <p style="font-size:20px !important;color:var(--muted);line-height:1.6;margin-bottom:8px;">
+          Mide la efectividad en costos del proyecto. Analiza si la inversión es justificable comparando todos los costos con los beneficios esperados.
+        </p>
+        <ul>
+          <li>Costo del tiempo del equipo de sistemas</li>
+          <li>Costo de realización del estudio completo</li>
+          <li>Costo estimado de hardware y software</li>
+          <li>Tiempo de los empleados del negocio</li>
+          <li>Análisis costo-beneficio y curva de retorno</li>
+        </ul>
+      </div>
+      <!-- OPERATIVA -->
+      <div class="tipo-col">
+        <div class="top-bar"></div>
+        <div class="tipo-icon"><i class="fa-solid fa-gear"></i></div>
+        <h2>Operativa</h2>
+        <p class="tipo-q">"¿El sistema será adoptado y usado?"</p>
+        <p style="font-size:20px !important;color:var(--muted);line-height:1.6;margin-bottom:8px;">
+          Mide el grado en que la solución satisface los requerimientos del sistema y es aceptada por el personal que la usará en el día a día.
+        </p>
+        <ul>
+          <li>¿Los usuarios tienen las competencias requeridas?</li>
+          <li>¿La dirección respalda el cambio?</li>
+          <li>¿Los procesos operativos son viables?</li>
+          <li>¿Se puede gestionar el cambio organizacional?</li>
+          <li>Resistencia al cambio y cultura organizacional</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 6: FACTIBILIDAD TÉCNICA (detalle) -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s6">
+    <div class="slide-header">
+      <span class="chip">03a</span>
+      <div class="rule"></div>
+      <span class="slide-title">Factibilidad <span>Técnica</span> — Detalle</span>
+    </div>
+    <div class="body">
+      <div class="main">
+        <div class="fact-row">
+          <div class="icon-wrap"><i class="fa-solid fa-server"></i></div>
+          <div>
+            <h4>Hardware y Capacidad de Cómputo</h4>
+            <p>Se evalúa si los servidores, procesadores, memoria y almacenamiento existentes son suficientes o si deben adquirirse nuevos equipos. Incluye dominio, hospedaje y conectividad de red.</p>
+          </div>
+        </div>
+        <div class="fact-row">
+          <div class="icon-wrap"><i class="fa-solid fa-database"></i></div>
+          <div>
+            <h4>Software e Infraestructura Tecnológica</h4>
+            <p>Determina si el software base (SO, SGBD, frameworks) está disponible y si puede desarrollarse el componente específico requerido. Según Kendall &amp; Kendall: "si la tecnología existe en el mercado, la pregunta se vuelve económica".</p>
+          </div>
+        </div>
+        <div class="fact-row">
+          <div class="icon-wrap"><i class="fa-solid fa-users"></i></div>
+          <div>
+            <h4>Experiencia y Conocimiento del Equipo</h4>
+            <p>Verifica que el equipo de desarrollo posea las competencias técnicas necesarias, o que puedan contratarse los perfiles requeridos sin exceder el presupuesto ni el calendario.</p>
+          </div>
+        </div>
+        <div class="fact-row">
+          <div class="icon-wrap"><i class="fa-solid fa-link"></i></div>
+          <div>
+            <h4>Integración con Sistemas Existentes</h4>
+            <p>Analiza las interfaces con sistemas legados, APIs externas y bases de datos existentes. La incompatibilidad técnica puede hacer inviable un proyecto aunque todo lo demás sea favorable.</p>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="check-box">
+          <h4>Lista de verificación técnica</h4>
+          <ul class="check-list">
+            <li><i class="fa-solid fa-check"></i> Servidor con capacidad suficiente</li>
+            <li><i class="fa-solid fa-check"></i> Procesador y memoria adecuados</li>
+            <li><i class="fa-solid fa-check"></i> Sistema operativo compatible</li>
+            <li><i class="fa-solid fa-check"></i> SGBD seleccionado y licenciado</li>
+            <li><i class="fa-solid fa-check"></i> Red y conectividad disponibles</li>
+            <li><i class="fa-solid fa-check"></i> Lenguaje de programación elegido</li>
+            <li><i class="fa-solid fa-check"></i> Herramientas CASE disponibles</li>
+            <li><i class="fa-solid fa-check"></i> Personal técnico capacitado</li>
+            <li><i class="fa-solid fa-check"></i> Políticas de seguridad definidas</li>
+          </ul>
+        </div>
+        <div class="def-card" style="margin-top:0;">
+          <h4>Fuente</h4>
+          <p>Kendall &amp; Kendall (2005): <em>Análisis y Diseño de Sistemas</em>, Cap. 3. Factibilidad técnica como primer filtro del proceso de selección de proyectos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 7: FACTIBILIDAD ECONÓMICA         -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s7">
+    <div class="slide-header">
+      <span class="chip green">03b</span>
+      <div class="rule"></div>
+      <span class="slide-title">Factibilidad <span>Económica</span> — Análisis Costo-Beneficio</span>
+    </div>
+    <div class="body">
+      <div class="left">
+        <div class="eco-card cost">
+          <h4><i class="fa-solid fa-arrow-trend-down"></i> Costos a considerar</h4>
+          <ul>
+            <li>Costos de desarrollo: salarios del equipo por cada fase del proyecto</li>
+            <li>Costos de hardware: nuevos equipos, dominio y hosting</li>
+            <li>Costos de software: licencias, frameworks, herramientas</li>
+            <li>Costos de capacitación del personal usuario</li>
+            <li>Costos de operación y mantenimiento posterior</li>
+            <li>Costos de migración de datos del sistema actual</li>
+          </ul>
+        </div>
+        <div class="cb-formula">
+          <div class="formula">Beneficio Neto = Σ Beneficios − Σ Costos</div>
+          <p>Si el beneficio neto acumulado durante la vida útil del sistema es positivo, la inversión está justificada económicamente.</p>
+        </div>
+      </div>
+      <div class="right">
+        <div class="eco-card bene">
+          <h4><i class="fa-solid fa-arrow-trend-up"></i> Beneficios esperados</h4>
+          <ul>
+            <li>Reducción de errores y reprocesos manuales</li>
+            <li>Eliminación de reportes duplicados o innecesarios</li>
+            <li>Ahorro en tiempo de trabajo del personal</li>
+            <li>Mayor velocidad en procesos clave del negocio</li>
+            <li>Mejora en la toma de decisiones por información oportuna</li>
+            <li>Ventaja competitiva frente a la competencia</li>
+          </ul>
+        </div>
+        <div class="eco-card meth">
+          <h4><i class="fa-solid fa-calculator"></i> Metodología de cálculo</h4>
+          <ul>
+            <li>Calcular costo del sistema actual (manual o informático)</li>
+            <li>Estimar costo del nuevo sistema durante su vida útil</li>
+            <li>Calcular la diferencia: ganancia o pérdida organizacional</li>
+            <li>Representar en curva costo-beneficio (Kendall &amp; Kendall)</li>
+          </ul>
+        </div>
+        <div class="eco-card note">
+          <h4><i class="fa-solid fa-circle-info"></i> Nota importante</h4>
+          <ul>
+            <li>Los beneficios tangibles son cuantificables en dinero; los intangibles (satisfacción, imagen) deben estimarse cualitativamente</li>
+            <li>Siempre comparar contra la alternativa de no hacer nada</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 8: FACTIBILIDAD OPERATIVA         -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s8">
+    <div class="slide-header">
+      <span class="chip gold">03c</span>
+      <div class="rule"></div>
+      <span class="slide-title">Factibilidad <span>Operativa</span></span>
+    </div>
+    <div class="body">
+      <div class="left">
+        <div class="def-card">
+          <h4>Definición</h4>
+          <p>Es una medición del grado en que una solución <strong>satisface los requerimientos del sistema</strong> identificados y puede ser aprovechada por los usuarios en su entorno real de trabajo. Un sistema técnicamente perfecto puede fallar si los usuarios no lo adoptan.</p>
+        </div>
+        <div class="factor-card">
+          <div class="num">01</div>
+          <div>
+            <h4>Respaldo de la dirección</h4>
+            <p>El apoyo de los directivos es el factor de éxito más crítico. Sin respaldo gerencial, el sistema difícilmente será implementado o mantenido correctamente.</p>
+          </div>
+        </div>
+        <div class="factor-card">
+          <div class="num">02</div>
+          <div>
+            <h4>Competencias del personal</h4>
+            <p>¿Los usuarios finales poseen —o pueden adquirir— las habilidades para operar el nuevo sistema? El plan de capacitación es parte integral del análisis operativo.</p>
+          </div>
+        </div>
+        <div class="factor-card">
+          <div class="num">03</div>
+          <div>
+            <h4>Resistencia al cambio</h4>
+            <p>La factibilidad cultural evalúa el sentir de las personas y el grado de aceptación en el ambiente organizacional. La resistencia no gestionada es causa frecuente de fracasos en implementación.</p>
+          </div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="factor-card">
+          <div class="num">04</div>
+          <div>
+            <h4>Viabilidad de procesos diarios</h4>
+            <p>¿Los procesos operativos del negocio son compatibles con el funcionamiento del nuevo sistema? Se analiza la logística, gestión de datos y flujo de trabajo cotidiano.</p>
+          </div>
+        </div>
+        <div class="factor-card">
+          <div class="num">05</div>
+          <div>
+            <h4>Periodo de compromiso</h4>
+            <p>El proyecto debe tener un periodo adecuado y realista de compromiso para su conclusión. Plazos irreales generan presión que reduce la calidad y la adopción.</p>
+          </div>
+        </div>
+        <div class="check-box">
+          <h4>Preguntas clave del analista</h4>
+          <ul class="check-list">
+            <li><i class="fa-solid fa-check"></i> ¿Los usuarios ven el problema que el sistema resuelve?</li>
+            <li><i class="fa-solid fa-check"></i> ¿La dirección tiene voluntad de impulsar el cambio?</li>
+            <li><i class="fa-solid fa-check"></i> ¿El flujo de trabajo se verá simplificado o complicado?</li>
+            <li><i class="fa-solid fa-check"></i> ¿Existe plan formal de capacitación y acompañamiento?</li>
+            <li><i class="fa-solid fa-check"></i> ¿Se identificaron usuarios clave (champions) del proyecto?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 9: PROCESO / PASOS                -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s9">
+    <div class="slide-header">
+      <span class="chip purple">04</span>
+      <div class="rule"></div>
+      <span class="slide-title">Proceso para <span>Conducir</span> el Estudio</span>
+    </div>
+    <div class="body">
+      <div class="steps-flow">
+        <div class="step-box">
+          <div class="snum">01</div>
+          <div class="step-tag">Inicio</div>
+          <h4>Definir objetivos organizacionales</h4>
+          <p>Identificar claramente qué quiere lograr la organización con el proyecto. Sintetizar los problemas, oportunidades y objetivos documentados en la Fase I del análisis.</p>
+        </div>
+        <div class="step-arrow">›</div>
+        <div class="step-box">
+          <div class="snum">02</div>
+          <div class="step-tag">Exploración</div>
+          <h4>Determinar recursos disponibles</h4>
+          <p>Inventariar tecnología, personal, presupuesto y tiempo. Comparar contra las necesidades del sistema propuesto. Identificar brechas que deben cubrirse.</p>
+        </div>
+        <div class="step-arrow">›</div>
+        <div class="step-box">
+          <div class="snum">03</div>
+          <div class="step-tag">Evaluación</div>
+          <h4>Analizar las tres dimensiones</h4>
+          <p>Aplicar los filtros técnico, económico y operativo. Si alguno es desfavorable, documentar las razones y posibles soluciones antes de continuar.</p>
+        </div>
+        <div class="step-arrow">›</div>
+        <div class="step-box">
+          <div class="snum">04</div>
+          <div class="step-tag">Estimación</div>
+          <h4>Calcular costos y beneficios</h4>
+          <p>Elaborar la curva costo-beneficio. Estimar el costo del sistema actual vs. el propuesto durante su vida útil. Incluir costos tangibles e intangibles.</p>
+        </div>
+        <div class="step-arrow">›</div>
+        <div class="step-box">
+          <div class="snum">05</div>
+          <div class="step-tag">Entrega</div>
+          <h4>Elaborar el informe y propuesta</h4>
+          <p>Documentar todos los hallazgos, recomendaciones y la decisión final. Presentar a los directivos para aprobación, rechazo o reformulación del proyecto.</p>
+        </div>
+      </div>
+      <div class="note-row">
+        <strong><i class="fa-solid fa-triangle-exclamation"></i> Principio clave de Kendall &amp; Kendall:</strong> "El analista de sistemas no debe gastar mucho tiempo haciendo estudios de factibilidad, debido a que muchos proyectos serán solicitados y solamente unos cuantos deberán ser ejecutados. El estudio debe estar altamente comprimido en el tiempo."
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 10: TIPOS ADICIONALES             -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s10">
+    <div class="slide-header">
+      <span class="chip red">03d</span>
+      <div class="rule"></div>
+      <span class="slide-title">Factibilidades <span>Adicionales</span></span>
+    </div>
+    <div class="body">
+      <div class="extra-card">
+        <div class="eicon"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div class="etag">Dimensión legal</div>
+        <h3>Factibilidad Legal</h3>
+        <p>Mide el grado en que una solución puede ponerse en práctica dentro del marco jurídico y normativo vigente. Cubre leyes de datos, propiedad intelectual, regulaciones sectoriales y contratos.</p>
+        <ul>
+          <li>Cumplimiento con Ley de Protección de Datos Personales</li>
+          <li>Licencias de software y derechos de autor</li>
+          <li>Contratos con proveedores y clientes</li>
+          <li>Normativas sectoriales aplicables (IMSS, SAT, etc.)</li>
+          <li>Restricciones de exportación de tecnología</li>
+        </ul>
+      </div>
+      <div class="extra-card">
+        <div class="eicon"><i class="fa-regular fa-calendar-check"></i></div>
+        <div class="etag">Dimensión temporal</div>
+        <h3>Factibilidad de Calendario</h3>
+        <p>Es una medición de cuán razonable será el calendario del proyecto. Un plan de entrega irreal puede hacer inviable un proyecto técnica y económicamente viable.</p>
+        <ul>
+          <li>¿El plazo propuesto es realista para el alcance?</li>
+          <li>¿Hay fechas límite externas que no pueden moverse?</li>
+          <li>Estimación con diagrama de Gantt (Kendall &amp; Kendall)</li>
+          <li>Identificación del camino crítico del proyecto</li>
+          <li>Dependencias con otros proyectos organizacionales</li>
+        </ul>
+      </div>
+      <div class="extra-card">
+        <div class="eicon"><i class="fa-solid fa-handshake"></i></div>
+        <div class="etag">Dimensión humana</div>
+        <h3>Factibilidad Cultural</h3>
+        <p>Es una medición del sentir de las personas acerca de una solución y el grado de su aceptación en un ambiente organizacional dado. Frecuentemente subestimada, es causa de fracasos en implementación.</p>
+        <ul>
+          <li>Cultura organizacional favorable al cambio tecnológico</li>
+          <li>Percepción de amenaza de los usuarios (temor a sustitución)</li>
+          <li>Políticas informales que pueden bloquear adopción</li>
+          <li>Estrategias de gestión del cambio requeridas</li>
+          <li>Moral del equipo durante la transición</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 11: CRITERIOS DE SELECCIÓN        -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s11">
+    <div class="slide-header">
+      <span class="chip teal">05a</span>
+      <div class="rule"></div>
+      <span class="slide-title">Criterios de <span>Selección</span> de Proyectos</span>
+    </div>
+    <div class="body">
+      <div class="col">
+        <div class="crit-card">
+          <div class="badge">1</div>
+          <div>
+            <h4>Respaldo de los directivos</h4>
+            <p>El factor de éxito más crítico. Sin compromiso explícito de la alta dirección, el proyecto carece del apoyo político y los recursos necesarios para prosperar.</p>
+          </div>
+        </div>
+        <div class="crit-card">
+          <div class="badge">2</div>
+          <div>
+            <h4>Periodo adecuado de compromiso</h4>
+            <p>El proyecto debe tener un plazo realista y alcanzable. Compromisos a corto plazo para proyectos de largo alcance generan presión que deteriora la calidad.</p>
+          </div>
+        </div>
+        <div class="crit-card">
+          <div class="badge">3</div>
+          <div>
+            <h4>Alineación con metas organizacionales</h4>
+            <p>El sistema debe mejorar la consecución de los objetivos estratégicos de la organización, no solo resolver un problema operativo aislado sin valor estratégico.</p>
+          </div>
+        </div>
+        <div style="background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.2);border-radius:12px;padding:26px 30px;">
+          <h4 style="font-size:20px;font-weight:700;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.1em;"><i class="fa-solid fa-chart-line"></i> Cuadrícula de impacto (Kendall &amp; Kendall)</h4>
+          <p style="font-size:20px;color:var(--muted);line-height:1.65;">Herramienta visual que muestra cómo cada alternativa de sistema impacta en distintos objetivos corporativos: ganancias, estrategia competitiva, operaciones con socios, servicio al cliente y moral del personal.</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="crit-card">
+          <div class="badge">4</div>
+          <div>
+            <h4>Factibilidad de recursos</h4>
+            <p>Relación analista-organización: ¿tiene el equipo de TI la capacidad de asumir el proyecto sin descuidar los sistemas en producción? La carga de trabajo actual es un factor crítico.</p>
+          </div>
+        </div>
+        <div class="crit-card">
+          <div class="badge">5</div>
+          <div>
+            <h4>Rentabilidad comparativa</h4>
+            <p>Comparar el retorno de inversión del proyecto vs. otras posibles inversiones de la organización. El capital siempre tiene usos alternativos que deben considerarse.</p>
+          </div>
+        </div>
+        <div class="crit-card">
+          <div class="badge">+</div>
+          <div>
+            <h4>Objetivos comunes de proyectos de sistemas</h4>
+            <p>Reducir errores · Mejorar precisión de entrada de datos · Agilizar y eliminar reportes duplicados · Mejorar el servicio al cliente · Fortalecer la toma de decisiones directivas</p>
+          </div>
+        </div>
+        <div class="crit-card">
+          <div class="badge"><i class="fa-solid fa-check"></i></div>
+          <div>
+            <h4>Verificación del éxito</h4>
+            <p>Revisar resultados contra criterios de desempeño · Observar el comportamiento de los empleados · Atender la retroalimentación de colaboradores externos al proyecto</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 12: INFORME DE FACTIBILIDAD       -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s12">
+    <div class="slide-header">
+      <span class="chip teal">05b</span>
+      <div class="rule"></div>
+      <span class="slide-title">El <span>Informe</span> de Factibilidad</span>
+    </div>
+    <div class="body">
+      <div class="main">
+        <div class="doc-section">
+          <h4>Estructura del documento</h4>
+          <ul>
+            <li>Portada: nombre del proyecto, solicitante, fecha, analista responsable</li>
+            <li>Resumen ejecutivo: decisión y justificación en no más de una página</li>
+            <li>Descripción del problema u oportunidad identificada</li>
+            <li>Alternativas analizadas con sus ventajas y desventajas</li>
+            <li>Análisis de factibilidad técnica: tecnología, personal, integración</li>
+            <li>Análisis de factibilidad económica: curva costo-beneficio, ROI</li>
+            <li>Análisis de factibilidad operativa: aceptación y gestión del cambio</li>
+            <li>Factibilidades adicionales: legal, calendario, cultural</li>
+            <li>Recomendación final y próximos pasos si se aprueba</li>
+          </ul>
+        </div>
+        <div class="doc-section">
+          <h4>Representación gráfica requerida</h4>
+          <ul>
+            <li>Curva costo-beneficio: muestra en qué momento los beneficios superan los costos</li>
+            <li>Diagrama de Gantt: estimación del calendario de desarrollo por fase</li>
+            <li>Cuadrícula de impacto: alineación de cada alternativa con objetivos estratégicos</li>
+          </ul>
+        </div>
+      </div>
+      <div class="side">
+        <div class="outcome-box">
+          <h4>Posibles resultados del informe</h4>
+          <ul class="outcome-list">
+            <li><span class="dot"></span>Aprobado: el proyecto procede a la siguiente fase del ciclo de vida</li>
+            <li><span class="dot"></span>Rechazado: la inversión no está justificada en alguna de las dimensiones clave</li>
+            <li><span class="dot"></span>Reformulado: se ajusta el alcance, presupuesto o calendario antes de una nueva evaluación</li>
+          </ul>
+        </div>
+        <div class="def-card">
+          <h4>Destinatarios del informe</h4>
+          <p>El informe de factibilidad va dirigido a los <strong>directivos y patrocinadores</strong> del proyecto, quienes tomarán la decisión final. Debe ser claro, conciso y libre de tecnicismos innecesarios para audiencias no técnicas.</p>
+        </div>
+        <div class="def-card">
+          <h4>Vínculo con el análisis posterior</h4>
+          <p>Si el proyecto es aprobado, el informe de factibilidad se convierte en el <strong>documento base</strong> para el levantamiento detallado de requerimientos (Fase III de Kendall &amp; Kendall): modelado de entradas, procesos y salidas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 13: RESUMEN                       -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s13">
+    <div class="slide-header">
+      <span class="chip gold">Síntesis</span>
+      <div class="rule"></div>
+      <span class="slide-title">Resumen — Lo que <span>Debes Saber</span></span>
+    </div>
+    <div class="body" style="display:flex;flex-direction:column;justify-content:center;padding:40px 70px 60px;">
+      <div class="center-wrap">
+        <div class="diagram" style="flex:1.3;">
+          <div class="diagram-box">
+            <div class="d-title">Mapa del Estudio de Factibilidad</div>
+            <div class="d-center">
+              <div class="d-main">ESTUDIO DE FACTIBILIDAD</div>
+            </div>
+            <div class="d-branches">
+              <div class="d-branch acc1"><i class="fa-solid fa-desktop"></i> Técnica<br><small>¿Tenemos la tecnología?</small></div>
+              <div class="d-branch acc2"><i class="fa-solid fa-coins"></i> Económica<br><small>¿Vale la inversión?</small></div>
+              <div class="d-branch acc3"><i class="fa-solid fa-gear"></i> Operativa<br><small>¿Lo adoptarán?</small></div>
+              <div class="d-branch acc4"><i class="fa-solid fa-scale-balanced"></i> Legal<br><small>¿Es conforme a ley?</small></div>
+              <div class="d-branch acc5"><i class="fa-solid fa-calendar-days"></i> Calendario<br><small>¿El plazo es viable?</small></div>
+            </div>
+            <div style="margin-top:24px;text-align:center;padding:18px 24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
+              <p style="font-size:18px;color:var(--muted);">Las tres primeras dimensiones son <strong style="color:var(--text);">obligatorias y simultáneas</strong>. Un proyecto debe ser factible en las tres para proceder.</p>
+            </div>
+          </div>
+        </div>
+        <div class="takeaways">
+          <div class="takeaway">
+            <div class="tk-icon"><i class="fa-solid fa-bullseye"></i></div>
+            <p><strong>El estudio es preventivo,</strong> no diagnosticador. Su valor está en evitar inversiones en proyectos que están condenados a fallar antes de comenzar.</p>
+          </div>
+          <div class="takeaway">
+            <div class="tk-icon"><i class="fa-solid fa-stopwatch"></i></div>
+            <p><strong>Debe ser ágil:</strong> comprimido en tiempo, no exhaustivo. Muchos proyectos se solicitarán; solo algunos merecerán el esfuerzo de un análisis completo.</p>
+          </div>
+          <div class="takeaway">
+            <div class="tk-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <p><strong>El análisis costo-beneficio</strong> es la herramienta central de la factibilidad económica. Siempre se debe comparar contra el escenario de "no hacer nada".</p>
+          </div>
+          <div class="takeaway">
+            <div class="tk-icon"><i class="fa-solid fa-handshake"></i></div>
+            <p><strong>La dimensión operativa</strong> es la más frecuentemente subestimada. Un sistema perfecto en papel puede fracasar por falta de adopción o resistencia al cambio.</p>
+          </div>
+          <div class="takeaway">
+            <div class="tk-icon"><i class="fa-solid fa-file-lines"></i></div>
+            <p><strong>El informe final</strong> es la entrega formal al cliente. Debe ser comprensible para directivos no técnicos e incluir recomendación clara con justificación.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────── -->
+  <!-- SLIDE 14: REFERENCIAS                   -->
+  <!-- ──────────────────────────────────────── -->
+  <section class="slide" id="s14">
+    <div class="slide-header">
+      <span class="chip purple">Referencias</span>
+      <div class="rule"></div>
+      <span class="slide-title">Fuentes <span>Bibliográficas</span></span>
+    </div>
+    <div class="body">
+      <div class="col">
+        <div class="ref-item">
+          <div class="ref-num">[1]</div>
+          <p><em>Kendall, K. E. y Kendall, J. E.</em> (2005). <em>Análisis y Diseño de Sistemas</em> (6ª ed.). Pearson Education / Prentice Hall. Capítulo 3: Formulación de los estudios de factibilidad técnica, económica y operativa.</p>
+        </div>
+        <div class="ref-item">
+          <div class="ref-num">[2]</div>
+          <p><em>Pressman, R. S.</em> (2010). <em>Ingeniería del Software: Un Enfoque Práctico</em> (7ª ed.). McGraw-Hill Interamericana. Marco PIECES para identificación de problemas organizacionales en el análisis de sistemas.</p>
+        </div>
+        <div class="ref-item">
+          <div class="ref-num">[3]</div>
+          <p><em>Sommerville, I.</em> (2011). <em>Ingeniería de Software</em> (9ª ed.). Addison-Wesley / Pearson Educación. ISBN 978-607-32-0603-7. Procesos de desarrollo y ciclo de vida del software.</p>
+        </div>
+        <div class="ref-item">
+          <div class="ref-num">[4]</div>
+          <p><em>Braude, E. J.</em> (2003). <em>Ingeniería de Software: Una Perspectiva Orientada a Objetos</em> (1ª ed.). Alfaomega. Análisis de factibilidad en proyectos orientados a objetos.</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="ref-item">
+          <div class="ref-num">[5]</div>
+          <p>UPIICSA – IPN. (s.f.). <em>Estudio de Factibilidad: Factibilidad técnica, económica, operativa, legal, de calendario y cultural.</em> Apunte de la Academia de Informática, Análisis de Sistemas. Recuperado de sites.upiicsa.ipn.mx</p>
+        </div>
+        <div class="ref-item">
+          <div class="ref-num">[6]</div>
+          <p><em>Quiroa, M.</em> (2020, julio 4). <em>Estudio de factibilidad: Qué es y qué tipos hay.</em> Economipedia. Revisado agosto 2025. Recuperado de economipedia.com/definiciones/estudio-de-factibilidad.html</p>
+        </div>
+        <div class="ref-item">
+          <div class="ref-num">[7]</div>
+          <p>División Académica de Informática y Sistemas – UJAT. (2022). <em>Programa de la materia Aplicación de Programación a la Administración.</em> Unidad sobre estudio de factibilidad. Recuperado de archivos.ujat.mx</p>
+        </div>
+        <div class="ref-item">
+          <div class="ref-num">[8]</div>
+          <p><em>Kendall, K. E. y Kendall, J. E.</em> (2005). Apunte de factibilidad. Asignatura: Sistemas de Información I. Determinación de recursos en las tres áreas de factibilidad: técnica, económica y operacional. Recuperado de SlideShare.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /viewport -->
+
+
+
+<script>
+// ── STATE ──
+const slides = document.querySelectorAll('.slide');
+const total  = slides.length;
+let current  = 0;
+let animating = false;
+
+// ── SCALE VIEWPORT ──
+function scaleViewport() {
+  const vp   = document.getElementById('viewport');
+  const scaleX = window.innerWidth  / 1920;
+  const scaleY = window.innerHeight / 1080;
+  const scale  = Math.min(scaleX, scaleY);
+  const ox = (window.innerWidth  - 1920 * scale) / 2;
+  const oy = (window.innerHeight - 1080 * scale) / 2;
+  vp.style.transform = `translate(${ox}px, ${oy}px) scale(${scale})`;
+}
+scaleViewport();
+window.addEventListener('resize', scaleViewport);
+
+// ── PROGRESS ──
+function updateUI() {
+  document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+  document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+}
+
+// ── NAV ──
+function goTo(next, direction) {
+  if (animating || next < 0 || next >= total) return;
+  animating = true;
+
+  const cur  = slides[current];
+  const nxt  = slides[next];
+
+  // exit current
+  cur.classList.add(direction === 1 ? 'exit-left' : 'exit-right');
+  cur.addEventListener('animationend', () => {
+    cur.classList.remove('active', 'exit-left', 'exit-right');
+  }, { once: true });
+
+  // enter next
+  nxt.classList.add('active', direction === 1 ? 'enter-right' : 'enter-left');
+  nxt.addEventListener('animationend', () => {
+    nxt.classList.remove('enter-right', 'enter-left');
+    animating = false;
+  }, { once: true });
+
+  current = next;
+  updateUI();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1,  1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1, -1);
+  if (e.key === 'f' || e.key === 'F') toggleFS();
+  if (e.key === 'Home') goTo(0,  1);
+  if (e.key === 'End')  goTo(total - 1, -1);
+});
+
+// ── FULLSCREEN ──
+function toggleFS() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  scaleViewport();
+  const btn = document.getElementById('fs-btn');
+  btn.textContent = document.fullscreenElement ? '✕ Salir (F)' : '⛶ Pantalla completa (F)';
+});
+
+// ── TOUCH SWIPE ──
+let touchX = null;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+document.addEventListener('touchend',   e => {
+  if (!touchX) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) goTo(current + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+  touchX = null;
+});
+
+// ── INIT ──
+updateUI();
+</script>
 </body>
 </html>
